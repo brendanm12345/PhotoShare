@@ -1,0 +1,14 @@
+.cs142-topbar-appBar {
+  height: 60;
+  justify-content: "center";
+  background-color: white;
+
+}
+
+.row {
+  justify-content: "space-between";
+}
+
+.cs142-topbar-toolbar {
+  background-color: white;
+}

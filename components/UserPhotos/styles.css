@@ -1,0 +1,45 @@
+.photo-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px;
+}
+
+.comments {
+  display: grid;
+  grid-template-columns: auto;
+  grid-gap: 8px;
+  width: 100%;
+}
+
+.comment {
+  display: flex;
+  flex-direction: column;
+  padding: 0px;
+  background-color: #f0f0f0;
+  width: 100%;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.user-link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-decoration: none;
+}
+
+.date-time {
+  font-weight: 400;
+}
+
+.user-name {
+  padding-left: 4px;
+  color: black;
+}
