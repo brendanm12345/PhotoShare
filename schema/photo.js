@@ -26,6 +26,8 @@ const photoSchema = new mongoose.Schema({
   user_id: mongoose.Schema.Types.ObjectId,
   // Array of comment objects representing the comments made on this photo.
   comments: [commentSchema],
+  // Array of users who liked photo
+  likes: [mongoose.Schema.Types.ObjectId],
 });
 
 /**

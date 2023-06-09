@@ -62,7 +62,7 @@ class UserList extends React.Component {
               }}
             >
               <ListItemAvatar>
-                <Avatar sx={{ bgcolor: "black" }}>
+                <Avatar sx={{ bgcolor: "black", fontSize: 14 }}>
                   {user.first_name[0]}
                   {user.last_name[0]}
                 </Avatar>

@@ -1,4 +1,4 @@
-import React, {useState, componentDidMount} from "react";
+import React, { useState, componentDidMount } from "react";
 import ReactDOM from "react-dom";
 import { Grid, Paper } from "@mui/material";
 import { HashRouter, Route, Switch, withRouter } from "react-router-dom";
@@ -8,16 +8,19 @@ import TopBar from "./components/TopBar";
 import UserDetail from "./components/UserDetail";
 import UserList from "./components/UserList";
 import UserPhotos from "./components/UserPhotos";
+import Favorites from "./components/Favorites";
 import LoginRegister from "./components/LoginRegister";
 import { Redirect } from "react-router-dom/cjs/react-router-dom.min";
 
 function PhotoShare() {
   const [user, setUser] = useState("");
+  const [loggedInAs, setLoggedInAs] = useState("");
   const [currView, setCurrView] = useState("Please log in");
   const [selectedUserId, setSelectedUserId] = useState("");
 
   const isLoggedIn = () => {
     console.log(!(user == ""));
+    // return true;
     return !(user == "");
   };
 
@@ -38,6 +41,7 @@ function PhotoShare() {
           <Grid item xs={12}>
             <TopBar
               currView={currView}
+              setCurrView={setCurrView}
               isLoggedIn={isLoggedIn}
               setUser={setUser}
             />
@@ -56,19 +60,45 @@ function PhotoShare() {
               <Switch>
                 <Route
                   exact
+                  path="/"
+                  render={() =>
+                    isLoggedIn() ? (
+                      <Redirect to={`/users/${user._id}`} />
+                    ) : (
+                      <Redirect to="/login" />
+                    )
+                  }
+                />
+                <Route
+                  exact
                   path="/login"
                   render={(props) => (
                     <LoginRegister
                       setUser={setUser}
                       // not added to login reg yet
                       setCurrView={setCurrView}
+                      setLoggedInAs={setLoggedInAs}
                       {...props}
                     />
                   )}
                 />
                 {isLoggedIn() ? (
                   <Route
-                    path={`/users/${user._id}`}
+                    path="/favorites"
+                    render={(props) => (
+                      <Favorites
+                        {...props}
+                        userId={user._id}
+                        updatecurrView={setCurrView}
+                      />
+                    )}
+                  />
+                ) : (
+                  <Redirect path="/favorites" to="/login" />
+                )}
+                {isLoggedIn() ? (
+                  <Route
+                    path={`/users/:userId`}
                     render={(props) => (
                       <UserDetail
                         {...props}
@@ -78,10 +108,7 @@ function PhotoShare() {
                     )}
                   />
                 ) : (
-                  <Redirect
-                    path={`/users/:id`}
-                    to="/login"
-                  />
+                  <Redirect path={`/users/:id`} to="/login" />
                 )}
                 {isLoggedIn() ? (
                   <Route
@@ -91,19 +118,12 @@ function PhotoShare() {
                         {...props}
                         userId={user._id}
                         updatecurrView={setCurrView}
+                        loggedInAs={loggedInAs}
                       />
                     )}
                   />
                 ) : (
-                  <Redirect
-                    path={`/photos/:id`}
-                    to="/login"
-                  />
-                )}
-                {isLoggedIn() ? (
-                  <Route path="/users" render={() => <UserList />} />
-                ) : (
-                  <Redirect path="/users" to="/login" />
+                  <Redirect path={`/photos/:id`} to="/login" />
                 )}
               </Switch>
             </Paper>

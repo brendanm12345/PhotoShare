@@ -36,7 +36,6 @@ const mongoose = require("mongoose");
 mongoose.Promise = require("bluebird");
 
 const async = require("async");
-
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const multer = require("multer");
@@ -44,6 +43,7 @@ const processFormBody = multer({ storage: multer.memoryStorage() }).single(
   "uploadedphoto"
 );
 const fs = require("fs");
+const { ObjectId } = require("mongodb");
 
 const express = require("express");
 const app = express();
@@ -73,6 +73,7 @@ app.use(express.static(__dirname));
 
 // ADDED
 const isLoggedIn = (request) => {
+  //return true;
   return request.session.user !== undefined;
 };
 
@@ -263,6 +264,11 @@ app.get("/photosOfUser/:id", function (request, response) {
             if (err2) {
               response.status(400).send("Comment Not Found");
             } else {
+              // sort timestamp
+              requested_comments.sort(
+                (start, end) =>
+                  new Date(start.date_time) - new Date(end.date_time)
+              );
               photo_obj.comments = requested_comments;
               requested_photos.push(photo_obj);
               callback();
@@ -274,10 +280,38 @@ app.get("/photosOfUser/:id", function (request, response) {
         if (err3) {
           response.status(400).send("Could Not Find");
         } else {
+          // sorted by the number of likes in descending order, break tie with timestamp
+          requested_photos.sort((a, b) => {
+            if (b.likes.length === a.likes.length) {
+              return new Date(b.date_time) - new Date(a.date_time);
+            }
+            return b.likes.length - a.likes.length;
+          });
+
           response.status(200).send(requested_photos);
         }
       }
     );
+  });
+});
+
+app.get("/favorites", function (request, response) {
+  if (!isLoggedIn(request)) {
+    return response.status(400).send("User not logged in");
+  }
+
+  const id = request.session.user._id;
+
+  Photo.find({ likes: { $in: [id] } }, (err, favorites) => {
+    if (err) {
+      return response.status(400).send("Error retrieving favorites");
+    }
+
+    if (!favorites) {
+      return response.status(404).send("No favorites found");
+    }
+
+    response.status(200).send(favorites);
   });
 });
 
@@ -327,9 +361,9 @@ const server = app.listen(3000, function () {
 
 // post newly added comments to photo
 app.post("/commentsOfPhoto/:photo_id", function (request, response) {
-  if (!isLoggedIn(request))
+  if (!isLoggedIn(request)) {
     return response.status(400).send("User not logged in");
-
+  }
   const _id = request.params.photo_id;
   const newComment = request.body.newComment;
   console.log("This is the new comment", newComment);
@@ -355,6 +389,31 @@ app.post("/commentsOfPhoto/:photo_id", function (request, response) {
     photo.save();
     response.status(200).send();
   }).clone();
+});
+
+app.get("/notablePosts/:id", (request, response) => {
+  if (!isLoggedIn(request)) {
+    return response.status(400).send("User not logged in");
+  }
+  const id = request.params.id;
+  return Photo.find({ user_id: id })
+    .then((photos) => {
+      if (!photos) {
+        return response.status(400).send("Photo not found");
+      } else {
+        const newest = [...photos].sort(
+          (a, b) => new Date(b.date_time) - new Date(a.date_time)
+        )[0];
+        const mostComments = [...photos].sort(
+          (a, b) => b.comments.length - a.comments.length
+        )[0];
+        return response.status(200).json({ newest, mostComments });
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      response.status(500).send("Server Error");
+    });
 });
 
 app.post("/photos/new", function (request, response) {
@@ -443,4 +502,36 @@ app.post("/photos/new", function (request, response) {
       }
     }).clone();
   });
+});
+
+// call this on liked button clicked
+app.post("/likes/:photo_id", function (request, response) {
+  if (!isLoggedIn(request)) {
+    return response.status(401).send("User not logged in");
+  }
+  var _id = request.params.photo_id;
+
+  var userId = request.session.user._id;
+
+  return Photo.findOne({ _id }, (err, photo) => {
+    if (err) {
+      return response.status(400).send("Could not find photo ", photoId);
+    } else {
+      console.log("photooo: ", photo);
+      console.log("photolikes: ", photo.likes);
+      // if its already been liked by the user, remove it
+      if (photo.likes.includes(request.session.user._id)) {
+        // filter it out the one the matches session.user.id (keep the rest)
+        photo.likes = photo.likes.filter(
+          (like) => like.toString() !== request.session.user._id.toString()
+        );
+      } else {
+        // otherwise add it to array of likes
+        photo.likes = [...photo.likes, new ObjectId(userId)];
+      }
+
+      photo.save();
+      return response.status(200).send();
+    }
+  }).clone();
 });

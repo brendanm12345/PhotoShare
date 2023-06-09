@@ -1,7 +1,7 @@
 .cs142-topbar-appBar {
   height: 60;
   justify-content: "center";
-  background-color: white;
+  border-bottom: 1px solid #000;
 
 }
 
@@ -11,4 +11,18 @@
 
 .cs142-topbar-toolbar {
   background-color: white;
+}
+
+.toolBarLink {
+  text-decoration: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: black;
+  padding: 8px;
+  margin-left: 12px;
+}
+
+.toolBarLink:hover {
+  text-decoration: underline;
 }

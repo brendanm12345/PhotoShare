@@ -8,17 +8,28 @@ import {
   Box,
   Button,
   Icon,
+  Card,
+  CardMedia,
+  CardContent,
+  CardActionArea,
+  CardActions,
 } from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+
 import { Link } from "react-router-dom";
 import axios from "axios";
 
 import "./styles.css";
+
+const mongoose = require("mongoose");
 
 function UserPhotos(props) {
   const [photos, setPhotos] = useState(null);
   const [newComment, setNewComment] = useState("");
   const [visibleInput, setVisibleInput] = useState(null);
   const [refresh, setRefresh] = useState(true);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     let isComponentMounted = true;
@@ -51,12 +62,15 @@ function UserPhotos(props) {
   }, [refresh, props.userId, props.updatecurrView]);
 
   const formatDateTime = (dateTime) => {
-    const options = {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    };
-    return new Date(dateTime).toLocaleDateString(undefined, options);
+    const diffTime = Math.abs(new Date() - new Date(dateTime));
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else if (diffDays < 365) {
+      return `${Math.floor(diffDays / 7)} weeks ago`;
+    } else {
+      return `${Math.floor(diffDays / 365)} years ago`;
+    }
   };
 
   const handleAddComment = () => {
@@ -75,6 +89,12 @@ function UserPhotos(props) {
       });
   };
 
+  const handleToggleLike = (photoId) => {
+    console.log("LOGGED IN AS: ", props.userId);
+    let url = `http://localhost:3000/likes/${photoId}`;
+    axios.post(url).then(() => setRefresh(true));
+  };
+
   const handleInputChange = (index) => {
     setVisibleInput(index);
   };
@@ -87,83 +107,115 @@ function UserPhotos(props) {
     <div>
       <ImageList sx={{ width: 600, height: 600 }} cols={2} rowHeight="auto">
         {photos.map((photo) => (
-          <ImageListItem key={photo._id}>
-            <img
-              src={`./images/${photo.file_name}?w=328&h=328&fit=crop&auto=format`}
-              alt={photo.file_name}
-              loading="lazy"
-              style={{ objectFit: "cover", width: "100%", height: "100%" }}
-            />
-            <div className="photo-info">
-              <Typography variant="body2" className="date-time">
-                {formatDateTime(photo.date_time)}
-              </Typography>
-              <div className="comments">
-                {photo.comments?.map((comment) => (
-                  <div key={comment._id} className="comment">
-                    <div className="user-info">
-                      <Link
-                        to={`/users/${comment.user._id}`}
-                        className="user-link"
-                      >
-                        <Avatar
-                          sx={{ bgcolor: "black" }}
-                          style={{ textDecoration: "none" }}
-                        >
-                          {comment.user.first_name[0]}
-                          {comment.user.last_name[0]}
-                        </Avatar>
-                        <Typography className="user-name">
-                          {comment.user.first_name} {comment.user.last_name}
-                        </Typography>
-                      </Link>
-                      <Typography className="date-time" variant="body2">
-                        {formatDateTime(comment.date_time)}
-                      </Typography>
-                    </div>
-                    <Typography className="comment-text">
-                      {comment.comment}
-                    </Typography>
-                  </div>
-                ))}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "flex-end" }}>
-                    <Icon
-                      baseClassName="fas"
-                      className="fa-plus-circle"
-                      fontSize="small"
-                    />
-
-                    <TextField
-                      placeholder="Add Comment"
-                      value={visibleInput == photo._id ? newComment : ""}
-                      onChange={(event) => {
-                        setNewComment(event.target.value);
-                        setVisibleInput(photo._id);
-                      }}
-                      multiline
-                      id="input-with-sx"
-                      label="Add Comment"
-                      variant="standard"
-                    />
-                  </Box>
-                  <Button
-                    onClick={handleAddComment}
-                    variant="text"
-                    color="primary"
+          <div>
+            <Card key={photo._id} sx={{ maxWidth: 345, alignItems: "left" }}>
+              <CardActionArea>
+                <CardMedia
+                  component="img"
+                  height="180"
+                  image={`./images/${photo.file_name}?w=328&h=328&fit=crop&auto=format`}
+                  alt={photo.file_name}
+                />
+                <CardContent>
+                  <Typography
+                    color="text.secondary"
+                    gutterBottom
+                    variant="caption"
+                    component="div"
                   >
-                    Post
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </ImageListItem>
+                    {formatDateTime(photo.date_time)}
+                  </Typography>
+                  <div className="comments">
+                    {photo.comments?.map((comment) => (
+                      <div key={comment._id} className="comment">
+                        <div className="user-info">
+                          <Link
+                            to={`/users/${comment.user._id}`}
+                            className="user-link"
+                          >
+                            <Avatar
+                              sx={{
+                                bgcolor: "black",
+                                width: 28,
+                                height: 28,
+                                fontSize: 12,
+                                fontWeight: "bold",
+                              }}
+                              style={{ textDecoration: "none" }}
+                            >
+                              {comment.user.first_name[0]}
+                              {comment.user.last_name[0]}
+                            </Avatar>
+                            <Typography className="user-name">
+                              {comment.user.first_name} {comment.user.last_name}
+                            </Typography>
+                          </Link>
+                          <Typography
+                            color="text.secondary"
+                            className="date-time"
+                            variant="body2"
+                          >
+                            {formatDateTime(comment.date_time)}
+                          </Typography>
+                        </div>
+                        <Typography className="comment-text">
+                          {comment.comment}
+                        </Typography>
+                      </div>
+                    ))}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          width: "100%",
+                          backgroundColor: "green",
+                        }}
+                      >
+                        <TextField
+                          placeholder="Add Comment"
+                          value={visibleInput == photo._id ? newComment : ""}
+                          onChange={(event) => {
+                            setNewComment(event.target.value);
+                            setVisibleInput(photo._id);
+                          }}
+                          multiline
+                          id="input-with-sx"
+                          label="Add Comment"
+                          variant="standard"
+                        />
+                        <Button
+                          onClick={handleAddComment}
+                          variant="text"
+                          color="primary"
+                        >
+                          Post
+                        </Button>
+                      </Box>
+                    </div>
+                  </div>
+                </CardContent>
+              </CardActionArea>
+              <CardActions>
+                {console.log(
+                  `User ID: ${props.loggedInAs._id}, Likes: ${photo.likes}`
+                )}
+                {photo.likes.includes(props.loggedInAs._id) ? (
+                  <FavoriteIcon onClick={() => handleToggleLike(photo._id)} />
+                ) : (
+                  <FavoriteBorderIcon
+                    onClick={() => handleToggleLike(photo._id)}
+                  />
+                )}
+                <Typography>{photo.likes?.length}</Typography>
+              </CardActions>
+            </Card>
+          </div>
         ))}
       </ImageList>
     </div>

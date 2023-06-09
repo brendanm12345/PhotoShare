@@ -1,3 +1,4 @@
+'use strict';
 /**
  * This Node.js program loads the CS142 Project 7 model data into Mongoose
  * defined objects in a MongoDB database. It can be run with the command:
@@ -8,24 +9,26 @@
  * In loads into collections named User and Photos. The Comments are added in
  * the Photos of the comments. Any previous objects in those collections are
  * discarded.
- */
+ */ 
 
 // We use the Mongoose to define the schema stored in MongoDB.
-const mongoose = require("mongoose");
-mongoose.Promise = require("bluebird");
-mongoose.set("strictQuery", false);
-mongoose.connect("mongodb://127.0.0.1/cs142project6", {
+const mongoose = require('mongoose');
+mongoose.Promise = require('bluebird');
+
+mongoose.set('strictQuery', false);
+mongoose.connect('mongodb://127.0.0.1/cs142project6', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
 // Get the magic models we used in the previous projects.
-const cs142models = require("./modelData/photoApp.js").cs142models;
+// eslint-disable-next-line import/extensions
+const { cs142models } = require('./modelData/photoApp.js');
 
 // Load the Mongoose schema for Use and Photo
-const User = require("./schema/user.js");
-const Photo = require("./schema/photo.js");
-const SchemaInfo = require("./schema/schemaInfo.js");
+const User = require('./schema/user');
+const Photo = require('./schema/photo');
+const SchemaInfo = require('./schema/schemaInfo');
 
 const versionString = "1.0";
 

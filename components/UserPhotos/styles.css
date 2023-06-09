@@ -2,22 +2,22 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 8px;
 }
 
 .comments {
   display: grid;
   grid-template-columns: auto;
-  grid-gap: 8px;
   width: 100%;
 }
 
 .comment {
   display: flex;
   flex-direction: column;
-  padding: 0px;
+  margin-bottom: 8px;
+  padding: 8px;
   background-color: #f0f0f0;
   width: 100%;
+  border-radius: 8px;
 }
 
 .user-info {
@@ -26,6 +26,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  margin-bottom: 4px;
 }
 
 .user-link {
@@ -33,6 +34,10 @@
   flex-direction: row;
   align-items: center;
   text-decoration: none;
+}
+
+.user-link:hover {
+  text-decoration: underline;
 }
 
 .date-time {

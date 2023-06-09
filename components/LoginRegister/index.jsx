@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import { TextField, Typography, Button } from "@mui/material";
 import axios from "axios";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "../../theme/theme";
 
-function LoginRegister({ setUser }) {
+function LoginRegister({ setUser, setLoggedInAs }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
@@ -19,7 +21,7 @@ function LoginRegister({ setUser }) {
         setPassword("");
         setSuccess(true);
         let user = response.data;
-        console.log(user);
+        setLoggedInAs(user);
         setUser(user);
         window.location = "#/users/" + user._id;
         // nav to user detail view
@@ -39,7 +41,7 @@ function LoginRegister({ setUser }) {
 
   return (
     // success?
-    <div>
+    <ThemeProvider theme={theme}>
       {success ? (
         <div>
           <Typography>You're logged in!</Typography>
@@ -51,12 +53,14 @@ function LoginRegister({ setUser }) {
             display: "flex",
             flexDirection: "column",
             alignItems: "left",
+            maxWidth: 500,
           }}
         >
           <Typography variant="h5" style={{ marginBottom: 12 }}>
             Log in to Photo App
           </Typography>
           <TextField
+            margin="normal"
             id="username"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
@@ -65,6 +69,7 @@ function LoginRegister({ setUser }) {
             style={{ marginBottom: 12 }}
           />
           <TextField
+            margin="normal"
             id="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -80,6 +85,8 @@ function LoginRegister({ setUser }) {
             {err}
           </Typography>
           <Button
+            size="large"
+            color="primary"
             disabled={!isValid()}
             onClick={handleSubmit}
             variant={"contained"}
@@ -88,7 +95,7 @@ function LoginRegister({ setUser }) {
           </Button>
         </div>
       )}
-    </div>
+    </ThemeProvider>
   );
 }
 
